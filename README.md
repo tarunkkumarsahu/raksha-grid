@@ -21,6 +21,6 @@ RAKSHA Grid is an adaptive disaster-response and evacuation-intelligence platfor
 
 ## Build status
 
-Milestone 0 is being bootstrapped: API contracts, first response-intelligence engines, tests, and the Android shell.
+Milestone 1 is now bootstrapped: API contracts, first response-intelligence engines, tests, CI, architecture docs, and the Android role-based shell.
 
 > Live, replayed, model-derived, and simulated data will always be labelled separately.

@@ -22,8 +22,8 @@ from app.services.shelter import allocate_shelters
 
 
 class DemoRoadReport(BaseModel):
-    road_id: str = "B12"
-    reason: str = "Bridge flooded / blocked"
+    road_id: str = Field(default="B12", min_length=2, max_length=30)
+    reason: str = Field(default="Bridge flooded / blocked", min_length=3, max_length=240)
     reporter_role: Literal["citizen", "responder", "officer"] = "responder"
     gps_verified: bool = True
     photo_attached: bool = True
@@ -34,14 +34,14 @@ class DemoRoadReport(BaseModel):
 
 app = FastAPI(
     title="RAKSHA Grid API",
-    version="0.2.0",
+    version="0.3.0",
     description="Response-intelligence API for adaptive flood evacuation and coordination.",
 )
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "raksha-grid-api", "version": "0.2.0"}
+    return {"status": "ok", "service": "raksha-grid-api", "version": "0.3.0"}
 
 
 @app.post("/intelligence/isolation", response_model=IsolationResult)
@@ -131,8 +131,37 @@ def report_road(payload: DemoRoadReport) -> dict:
         age_minutes=payload.age_minutes,
         contradicting_reports=payload.contradicting_reports,
     )
-    return demo_scenario.report_blocked_road(
-        road_id=payload.road_id,
-        report=report,
-        reason=payload.reason,
-    )
+    try:
+        return demo_scenario.report_blocked_road(
+            road_id=payload.road_id,
+            report=report,
+            reason=payload.reason,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+class DemoReportReview(BaseModel):
+    approve: bool
+
+
+class DemoShelterCapacity(BaseModel):
+    capacity_remaining: int = Field(ge=0, le=100000)
+
+
+@app.post("/demo/round1/reports/{report_id}/review")
+def review_road_report(report_id: int, payload: DemoReportReview) -> dict:
+    """Officer review action for a PENDING report. Simulation only; no user auth."""
+    try:
+        return demo_scenario.review_report(report_id, payload.approve)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.patch("/demo/round1/shelters/{shelter_id}/capacity")
+def update_shelter_capacity(shelter_id: str, payload: DemoShelterCapacity) -> dict:
+    """Set the remaining demo shelter capacity and recalculate all role views."""
+    try:
+        return demo_scenario.set_capacity(shelter_id, payload.capacity_remaining)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc

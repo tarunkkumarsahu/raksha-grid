@@ -1,5 +1,8 @@
+from typing import Literal
+
 import networkx as nx
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 
 from app.schemas import (
     GroundReportInput,
@@ -11,21 +14,34 @@ from app.schemas import (
     ShelterAllocationRequest,
     ShelterAllocationResult,
 )
+from app.services.demo_scenario import demo_scenario
 from app.services.ground_intel import score_ground_report
 from app.services.isolation import compute_isolation_intelligence
 from app.services.routing import find_safe_corridor
 from app.services.shelter import allocate_shelters
 
+
+class DemoRoadReport(BaseModel):
+    road_id: str = "B12"
+    reason: str = "Bridge flooded / blocked"
+    reporter_role: Literal["citizen", "responder", "officer"] = "responder"
+    gps_verified: bool = True
+    photo_attached: bool = True
+    independent_corroborations: int = Field(default=2, ge=0, le=10)
+    age_minutes: float = Field(default=2, ge=0)
+    contradicting_reports: int = Field(default=0, ge=0, le=10)
+
+
 app = FastAPI(
     title="RAKSHA Grid API",
-    version="0.1.0",
+    version="0.2.0",
     description="Response-intelligence API for adaptive flood evacuation and coordination.",
 )
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "raksha-grid-api", "version": "0.1.0"}
+    return {"status": "ok", "service": "raksha-grid-api", "version": "0.2.0"}
 
 
 @app.post("/intelligence/isolation", response_model=IsolationResult)
@@ -90,3 +106,33 @@ def demo_situation() -> dict:
         "notice": "Synthetic demo scenario. Do not present this endpoint as live official data.",
         "priority_settlements": [r.model_dump() for r in ranked],
     }
+
+
+@app.get("/demo/round1")
+def round1_demo() -> dict:
+    """Get the current connected Citizen / Responder / Officer demo state."""
+    return demo_scenario.snapshot()
+
+
+@app.post("/demo/round1/reset")
+def reset_round1_demo() -> dict:
+    """Reset the demo to the pre-disruption state."""
+    return demo_scenario.reset()
+
+
+@app.post("/demo/round1/report-road")
+def report_road(payload: DemoRoadReport) -> dict:
+    """Submit a field report and update the road only if evidence is actionable."""
+    report = GroundReportInput(
+        reporter_role=payload.reporter_role,
+        gps_verified=payload.gps_verified,
+        photo_attached=payload.photo_attached,
+        independent_corroborations=payload.independent_corroborations,
+        age_minutes=payload.age_minutes,
+        contradicting_reports=payload.contradicting_reports,
+    )
+    return demo_scenario.report_blocked_road(
+        road_id=payload.road_id,
+        report=report,
+        reason=payload.reason,
+    )

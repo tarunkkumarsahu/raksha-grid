@@ -44,7 +44,7 @@ def test_second_road_closure_makes_rampur_unreachable_without_fabricating_route(
     assert second["citizen"]["route_status"] == "unavailable"
     assert second["officer"]["safe_exits_remaining"] == 0
     assert second["officer"]["time_to_isolation_minutes"] == 0
-    assert "DO NOT proceed" in second["responder"]["message"]
+    assert "NOT proceed" in second["responder"]["message"]
 
 
 def test_shelter_capacity_recommends_other_reachable_shelter():

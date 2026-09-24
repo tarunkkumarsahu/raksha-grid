@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAKSHA Grid | Simulated response</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,sans-serif;color:#eff9f4;background:#061610}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 78% 0%,#143d2f 0%,#061610 49%)}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px max(24px,calc((100vw - 1220px)/2));border-bottom:1px solid #2b493d;background:#081c15dd;flex-wrap:wrap}
+.brand{font-size:22px;letter-spacing:.04em;font-weight:800}.brand small{display:block;font-weight:400;letter-spacing:0;color:#9cbbab;font-size:12px;margin-top:4px}
+.flag{font-size:11px;font-weight:800;color:#ffc8a8;background:#60301b;border:1px solid #a86e42;padding:8px 12px;border-radius:100px;letter-spacing:.07em}
+main{max-width:1220px;margin:28px auto;padding:0 22px 42px}h1{font-size:clamp(25px,4vw,37px);margin:0 0 8px}p{color:#a9c7b7;line-height:1.55}
+.intro{margin:0 0 24px}.intro strong{color:#f4b389}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}
+button,select,input{font:inherit}button{cursor:pointer;border-radius:10px;background:#144637;border:1px solid #32735a;color:#dcfce9;padding:11px 15px;font-weight:700}button:hover{background:#1d6550}button.active{background:#73e6a6;border-color:#73e6a6;color:#0a2a1e}button:disabled{opacity:.45;cursor:not-allowed}
+button.warn{background:#69371f;border-color:#a15e32;color:#ffe7c7}button.secondary{background:#173027}
+.grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,.85fr);gap:16px}.panel{background:#0d231a;border:1px solid #2a4939;border-radius:16px;padding:21px;min-width:0}
+h2{font-size:18px;margin:0 0 16px}.caption{font-size:11px;color:#91b8a3;text-transform:uppercase;letter-spacing:.1em}
+.muted{color:#91b8a3;font-size:13px}.stat{font-size:32px;font-weight:800;margin:8px 0;color:#bbf7d0}
+.mark{padding:4px 9px;border:1px solid #3f795b;background:#174330;border-radius:100px;font-size:11px;font-weight:800;display:inline-block}
+.notice{background:#32251b;border:1px solid #805331;color:#ffe6c6;padding:12px 14px;border-radius:10px;font-size:13px;margin:12px 0 20px}
+.map{height:340px;position:relative;background:linear-gradient(25deg,#102a1f,#122d28);border:1px solid #315544;border-radius:12px;overflow:hidden;margin-top:14px}
+.map:before{content:"";position:absolute;inset:0;background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px);background-size:24px 24px}
+.map svg{position:absolute;inset:0;width:100%;height:100%}.node{position:absolute;transform:translate(-50%,-50%);background:#c9fbe2;color:#083320;border-radius:9px;padding:6px 8px;font-size:11px;font-weight:700;white-space:nowrap;border:2px solid #256c49}
+.node.shelter{background:#bce0ff;border-color:#548fd7;color:#102e52}.node.junction{background:#d8d1ff;border-color:#968ad4;color:#332464}
+.legend{font-size:12px;color:#a9c7b7;margin-top:10px}.legend b{color:#e6f5ec}
+.route{border:1px solid #376c53;border-radius:12px;padding:13px;background:#163a2a;margin-top:12px}.route.none{border-color:#ba6b3c;background:#422419}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.card{padding:13px 0;border-bottom:1px solid #2d453a}.card:last-child{border-bottom:0}
+.tag{color:#b8ffce;font-weight:700}.tag.red{color:#ffb59d}select,input{width:100%;padding:12px;background:#092017;border:1px solid #3b6851;border-radius:9px;color:#edf9f0;margin:8px 0 14px}
+label{font-size:12px;color:#afcdbb;display:block}.messages{min-height:20px;color:#b7f5cc;font-size:13px;margin:10px 0}
+.report{margin:10px 0;padding:12px;background:#143328;border:1px solid #37684f;border-radius:10px}
+.report button{font-size:12px;padding:8px 9px;margin:5px 5px 0 0}
+.off{display:none}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+footer{max-width:1220px;margin:0 auto;padding:0 22px 24px;color:#85ab97;font-size:12px}
+@media(max-width:780px){.grid{grid-template-columns:1fr}.map{height:270px}.node{font-size:9px;padding:4px}.panel{padding:16px}}
+</style>
+</head>
+<body>
+<header><div class="brand">RAKSHA GRID<small>From warning to coordinated action</small></div><div class="flag">SIMULATION · NOT LIVE FLOOD DATA</div></header>
+<main>
+<h1>One incident. Three connected views.</h1>
+<p class="intro">This working prototype demonstrates how a <strong>reviewed road-closure report</strong> changes routes and settlement isolation estimates. Open this page in three tabs to play Citizen, Responder and Officer.</p>
+<nav aria-label="Demo role"><button class="active" data-role="citizen" onclick="switchRole('citizen')">Citizen</button><button data-role="responder" onclick="switchRole('responder')">Responder</button><button data-role="officer" onclick="switchRole('officer')">Officer</button><button class="secondary" onclick="resetDemo()">Reset scenario</button></nav>
+<div class="notice" id="notice">Loading synthetic scenario…</div>
+<div class="grid">
+<section class="panel">
+<div class="row"><h2>Illustrative road network</h2><span class="mark" id="version">Loading</span></div>
+<div class="caption">SCHEMATIC ONLY — NOT A REAL MAP OR NAVIGATION</div>
+<div id="map" class="map" role="img" aria-label="Schematic of two fictional villages, shelters and road closures"></div>
+<p class="legend"><b>Green</b> open in demo · <b>Red dashed</b> officer-confirmed blockage · <b>Blue</b> shelters. Open roads are not verified safe for travel.</p>
+<div id="road-list"></div>
+</section>
+<section class="panel" id="citizen">
+<span class="caption">CITIZEN VIEW · RAMPUR (FICTIONAL)</span><h2 style="margin-top:10px">Where can I go?</h2>
+<div id="citizen-content">Loading…</div>
+</section>
+<section class="panel off" id="responder">
+<span class="caption">RESPONDER VIEW · FIELD REPORT</span><h2 style="margin-top:10px">Report a road problem</h2>
+<p>Submitting a report does <b>not</b> automatically close a road. It goes to officer review.</p>
+<label for="road">Road / bridge</label><select id="road"></select>
+<label for="observation">Observation</label><select id="observation"><option value="bridge_submerged">Bridge submerged (simulated)</option><option value="road_flooded">Road flooded (simulated)</option><option value="road_clear">Road clear (simulated)</option></select>
+<label for="note">Short note (optional)</label><input id="note" maxlength="250" placeholder="Fictional exercise only">
+<button onclick="submitReport()">Submit field report</button>
+<div id="reporter-message" class="messages" role="status"></div>
+<div id="responder-content"></div>
+</section>
+<section class="panel off" id="officer">
+<span class="caption">OFFICER VIEW · NO AUTHENTICATION IN DEMO</span><h2 style="margin-top:10px">Review and respond</h2>
+<p>Review incoming reports before changing the simulated road network.</p>
+<div id="officer-content"></div>
+</section>
+</div>
+<section class="panel" style="margin-top:16px"><h2>Shared response timeline</h2><div id="timeline"></div></section>
+</main>
+<footer>All people counts, place names, road geometry, times and risk values here are fictional. Routes are provisional model outputs, not official evacuation instructions. Do not use for a real emergency.</footer>
+<script>
+let snapshot=null;
+let currentRole='citizen';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function switchRole(role){
+ currentRole=role;
+ for(const name of ['citizen','responder','officer']){
+  document.getElementById(name).classList.toggle('off',name!==role);
+  document.querySelector('[data-role="'+name+'"]').classList.toggle('active',name===role);
+ }
+ if(snapshot) render(snapshot);
+}
+async function request(path,options){
+ const r=await fetch(path,options);
+ const data=await r.json();
+ if(!r.ok)throw new Error(data.detail||'Request failed');
+ return data;
+}
+async function refresh(){
+ try{snapshot=await request('/demo/state'); render(snapshot);}
+ catch(e){document.getElementById('notice').textContent='Backend unavailable: '+e.message;}
+}
+function render(s){
+ document.getElementById('notice').textContent=s.notice;
+ document.getElementById('version').textContent='State version '+s.version;
+ drawMap(s);
+ const v=s.priority_settlements.find(v=>v.id==='rampur');
+ const route=v.recommended_route;
+ document.getElementById('citizen-content').innerHTML=
+ '<div class="caption">MODELED TIME UNTIL ALL KNOWN EXITS FAIL</div>'+
+ '<div class="stat">'+(v.time_to_isolation_minutes===null?'Unknown':esc(v.time_to_isolation_minutes)+' min')+'</div>'+
+ '<p>'+esc(v.usable_exits)+' exit(s) in this synthetic network · priority score '+esc(v.priority_score)+'</p>'+
+ (route?'<div class="route"><span class="mark">PROVISIONAL ROUTE</span><h2 style="margin-top:12px">'+esc(route.shelter_name)+'</h2><div>'+esc(route.path_labels.join(' → '))+'</div><p>Modelled travel time: '+esc(route.travel_minutes)+' min · Sample free spaces: '+esc(route.available_places)+'</p></div>'
+ :'<div class="route none"><b>No modelled evacuation route remains.</b><p>Do not attempt a blocked road. In a real emergency, follow authorised guidance and call official emergency services.</p></div>')+
+ '<p class="muted">No GPS, verified water depth, field-certified road safety or live shelters are connected yet.</p>';
+ const list=document.getElementById('road');
+ const prior=list.value;
+ list.innerHTML=s.roads.map(r=>'<option value="'+esc(r.id)+'">'+esc(r.id)+' — '+esc(s.nodes.find(n=>n.id===r.source).name)+' to '+esc(s.nodes.find(n=>n.id===r.target).name)+'</option>').join('');
+ if(s.roads.some(r=>r.id===prior))list.value=prior;
+ document.getElementById('responder-content').innerHTML=
+ '<div class="card"><b>Current mission:</b> Rampur (fictional)<p class="muted">Modelled approach: '+(route?esc(route.path_labels.join(' → ')):'No route available')+'</p></div>';
+ document.getElementById('officer-content').innerHTML=
+ '<h2>Incoming reports</h2>'+
+ (s.reports.length?s.reports.slice().reverse().map(r=>
+ '<div class="report"><b>'+esc(r.id)+' · '+esc(r.road_id)+'</b><div class="muted">'+esc(r.observation)+' · '+esc(r.reporter_role)+' · '+esc(r.status)+'</div>'+
+ (r.status==='pending_officer_review'?
+ '<button data-report="'+esc(r.id)+'" data-decision="confirm_blocked">Confirm blockage</button><button class="warn" data-report="'+esc(r.id)+'" data-decision="reject_report">Reject report</button>':'')+'</div>').join(''):'<p class="muted">No reports submitted yet.</p>')+
+ '<h2 style="margin-top:20px">Village priorities</h2>'+
+ s.priority_settlements.map(v=>'<div class="card"><div class="row"><b>'+esc(v.name)+'</b><span class="tag '+(v.is_isolated?'red':'')+'">'+esc(v.priority_score)+'</span></div><span class="muted">'+(v.time_to_isolation_minutes===null?'Unknown modelled TTI':esc(v.time_to_isolation_minutes)+' min modelled TTI')+' · '+esc(v.usable_exits)+' exit(s)</span></div>').join('')+
+ '<p class="muted">Confirmation here is a demo role selector, not secure authorization.</p>';
+ for(const btn of document.querySelectorAll('[data-report]')){
+  btn.onclick=()=>review(btn.dataset.report,btn.dataset.decision);
+ }
+ document.getElementById('timeline').innerHTML=s.events.slice().reverse().map(e=>'<div class="card">'+esc(e.message)+'<div class="muted">'+esc(e.time)+'</div></div>').join('');
+ document.getElementById('road-list').innerHTML='<div class="caption" style="margin-top:16px">ROAD STATUS</div>'+
+ s.roads.map(r=>'<span class="mark" style="margin:8px 6px 0 0;color:'+(r.blocked?'#ffb59d':'#b8ffce')+'">'+esc(r.id)+' · '+(r.blocked?'BLOCKED':'OPEN IN DEMO')+'</span>').join('');
+}
+function drawMap(s){
+ const map=document.getElementById('map');
+ map.innerHTML='';
+ const ns='http://www.w3.org/2000/svg';
+ const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('preserveAspectRatio','none');
+ for(const road of s.roads){
+  const a=s.nodes.find(n=>n.id===road.source),b=s.nodes.find(n=>n.id===road.target);
+  const line=document.createElementNS(ns,'line');
+  for(const [k,v] of Object.entries({x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:road.blocked?'#ff7b6c':'#6be9a2','stroke-width':'1.5','stroke-dasharray':road.blocked?'3 2':'none'}))line.setAttribute(k,v);
+  svg.appendChild(line);
+ }
+ map.appendChild(svg);
+ for(const node of s.nodes){
+  const el=document.createElement('div');
+  el.className='node'+(node.id.startsWith('shelter')?' shelter':node.id==='bridge'||node.id==='crossroad'?' junction':'');
+  el.style.left=node.x+'%';el.style.top=node.y+'%';el.textContent=node.name;map.appendChild(el);
+ }
+}
+async function submitReport(){
+ try{
+ const data=await request('/demo/reports',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+ road_id:document.getElementById('road').value,reporter_role:'responder',
+ observation:document.getElementById('observation').value,note:document.getElementById('note').value
+ })});
+ document.getElementById('reporter-message').textContent=data.report.id+' submitted. Waiting for officer review.';
+ snapshot=data.state;render(snapshot);
+ }catch(e){document.getElementById('reporter-message').textContent='Error: '+e.message;}
+}
+async function review(id,decision){
+ try{const result=await request('/demo/reports/'+encodeURIComponent(id)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reviewer_role:'officer',decision})});snapshot=result.state;render(snapshot);}
+ catch(e){document.getElementById('notice').textContent='Review error: '+e.message;}
+}
+async function resetDemo(){
+ if(!window.confirm('Reset all simulated reports and road closures for every open demo tab?'))return;
+ try{snapshot=await request('/demo/reset',{method:'POST'});render(snapshot);}
+ catch(e){document.getElementById('notice').textContent='Reset failed: '+e.message;}
+}
+refresh();setInterval(refresh,2000);
+</script>
+</body>
+</html>

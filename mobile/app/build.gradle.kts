@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "in.rakshagrid.app"
+    namespace = "com.rakshagrid.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "in.rakshagrid.app"
+        applicationId = "com.rakshagrid.app"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

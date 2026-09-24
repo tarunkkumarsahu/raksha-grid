@@ -1,4 +1,4 @@
-package in.rakshagrid.app.ui
+package com.rakshagrid.app.ui
 
 import android.os.Handler
 import android.os.Looper

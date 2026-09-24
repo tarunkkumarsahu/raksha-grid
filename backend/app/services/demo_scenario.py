@@ -83,7 +83,7 @@ class DemoScenario:
 
     def _access(self, origin: str) -> tuple[int, float]:
         graph = self._graph()
-        shelters = [s for s in SHELTERS if self.shelter_capacity[s] > 0]
+        shelters = [s for s in SHELTERS if self.shelter_capacity[s] >= SETTLEMENTS[origin]["evacuees"]]
         failures = []
         if origin not in graph:
             return 0, 0.0

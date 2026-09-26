@@ -20,6 +20,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
+      - run: python -m pip install --upgrade pip
       - run: pip install -r requirements.txt
+      - name: Validate database migrations
+        env:
+          DATABASE_URL: sqlite:////tmp/raksha_grid_ci.db
+        run: alembic -c alembic.ini upgrade head
+      - name: Compile Python modules
+        run: python -m compileall -q app tests
       - run: PYTHONPATH=. pytest -q

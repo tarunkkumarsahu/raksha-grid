@@ -1,9 +1,9 @@
-package in.rakshagrid.app
+package com.rakshagrid.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import in.rakshagrid.app.ui.RakshaGridApp
+import com.rakshagrid.app.ui.RakshaGridApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

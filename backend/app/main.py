@@ -15,17 +15,19 @@ from app.services.ground_intel import score_ground_report
 from app.services.isolation import compute_isolation_intelligence
 from app.services.routing import find_safe_corridor
 from app.services.shelter import allocate_shelters
+from app.demo import router as demo_router
 
 app = FastAPI(
     title="RAKSHA Grid API",
-    version="0.1.0",
+    version="0.2.0",
     description="Response-intelligence API for adaptive flood evacuation and coordination.",
 )
+app.include_router(demo_router)
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "raksha-grid-api", "version": "0.1.0"}
+    return {"status": "ok", "service": "raksha-grid-api", "version": "0.2.0"}
 
 
 @app.post("/intelligence/isolation", response_model=IsolationResult)
@@ -53,30 +55,18 @@ def shelters(payload: ShelterAllocationRequest) -> ShelterAllocationResult:
 
 @app.get("/demo/situation")
 def demo_situation() -> dict:
-    """Small labelled simulation used to wire the first mobile demo."""
+    """Legacy labelled simulation endpoint; prefer /demo/state for new demo flow."""
     settlements = [
         SettlementInput(
-            id="VIL-B",
-            name="Rampur",
-            population=1840,
-            vulnerable_population=510,
-            flood_risk=0.88,
-            route_risk=0.73,
-            medical_urgency=0.35,
-            shelter_accessibility=0.55,
-            predicted_exit_failure_minutes=[37],
+            id="VIL-B", name="Rampur", population=1840, vulnerable_population=510,
+            flood_risk=0.88, route_risk=0.73, medical_urgency=0.35,
+            shelter_accessibility=0.55, predicted_exit_failure_minutes=[37],
             data_mode="simulation",
         ),
         SettlementInput(
-            id="VIL-A",
-            name="Basantpur",
-            population=4200,
-            vulnerable_population=760,
-            flood_risk=0.79,
-            route_risk=0.46,
-            medical_urgency=0.20,
-            shelter_accessibility=0.80,
-            predicted_exit_failure_minutes=[38, 74, 105],
+            id="VIL-A", name="Basantpur", population=4200, vulnerable_population=760,
+            flood_risk=0.79, route_risk=0.46, medical_urgency=0.20,
+            shelter_accessibility=0.80, predicted_exit_failure_minutes=[38, 74, 105],
             data_mode="simulation",
         ),
     ]
